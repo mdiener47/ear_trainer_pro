@@ -5,6 +5,8 @@ import simpleaudio as sa
 import time
 import random
 
+NUM_NOTES_SCALE_DICTATION = 4
+
 note_filename_map = {}
 notes = []
 directory = '/Users/mattjdiener/Desktop/C3_C5wavs'
@@ -175,7 +177,7 @@ def main():
     print(scales)
     fill_data_strucs()
     while True:
-        if not scale_dictation_exercise(4):
+        if not scale_dictation_exercise(NUM_NOTES_SCALE_DICTATION):
             break
     # play_note('/Users/mattjdiener/Desktop/C3_C5wavs/Piano.mf.Gb3.wav')
 

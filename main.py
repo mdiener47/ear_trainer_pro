@@ -9,7 +9,21 @@ NUM_NOTES_SCALE_DICTATION = 4
 
 note_filename_map = {}
 notes = []
-directory = '/Users/mattjdiener/Desktop/C3_C5wavs'
+directory = '/Users/mattjdiener/PycharmProjects/ear_trainer_pro/'
+
+interval_to_scale_tone = {
+    'P1': '1',
+    'm2': 'b2',
+    'M2': '2',
+    'm3': 'b3',
+    'P4': '4',
+    'D5': 'b5',
+    'P5': '5',
+    'm6': 'b6',
+    'M6': '6',
+    'm7': 'b7',
+    'M7': '7'
+}
 
 
 def fill_data_strucs():
@@ -23,7 +37,7 @@ def fill_data_strucs():
 
 def play_note(note, sleep_time):
     filename = note_filename_map[note.full_name]
-    path = directory + f'/{filename}'
+    path = directory + f'{filename}'
     wave_obj = sa.WaveObject.from_wave_file(path)
     play_obj = wave_obj.play()
     time.sleep(sleep_time)
@@ -96,13 +110,13 @@ def quiz_user(message, correct_answer):
     is_quit = False
     play_again = False
     is_correct = False
-    if user_answer == 'q':
-        is_quit = True
-    if user_answer == 'r':
-        play_again = True
     if user_answer[0] == 'p' or user_answer[0] == 'd':
         user_answer = user_answer.upper()
-    if user_answer == correct_answer:
+    if user_answer == 'q':
+        is_quit = True
+    elif user_answer == 'r':
+        play_again = True
+    elif user_answer == correct_answer:
         print("Correct!")
         is_correct = True
     else:
@@ -136,24 +150,6 @@ def scale_dictation_exercise(num_notes):
         triad_indices = [0, 2, 4]  # refers to index of note in scale
         play_again = True
         for i in range(num_notes):
-            while True:
-                if play_again:
-                    play_prompt(scale, triad_indices, note_choices)
-
-                # find interval from root note for each scale tone
-                # consider adding a way to convert interval notation to scale tone notation
-                pair = NotePair.from_note1_note2(root_note, note_choices[i])
-                message = f'Enter guess for scale tone {i+1} (r to repeat):'
-                is_quit, play_again, is_correct = quiz_user(message, pair.interval)
-                if is_quit:
-                    return False
-                if play_again:
-                    continue
-                if is_correct:
-                    break
-                # else just repeat (temporarily print pair for debugging)
-                else:
-                    print_pair(pair)
             if i > 0:
                 while True:
                     if play_again:
@@ -171,6 +167,25 @@ def scale_dictation_exercise(num_notes):
                     # else just repeat (temporarily print pair for debugging)
                     else:
                         print_pair(pair)
+            while True:
+                if play_again:
+                    play_prompt(scale, triad_indices, note_choices)
+
+                # find interval from root note for each scale tone
+                # consider adding a way to convert interval notation to scale tone notation
+                pair = NotePair.from_note1_note2(root_note, note_choices[i])
+                correct_answer = interval_to_scale_tone[pair.interval]
+                message = f'Enter guess for scale tone {i+1} (r to repeat):'
+                is_quit, play_again, is_correct = quiz_user(message, interval_to_scale_tone)
+                if is_quit:
+                    return False
+                if play_again:
+                    continue
+                if is_correct:
+                    break
+                # else just repeat (temporarily print pair for debugging)
+                else:
+                    print_pair(pair)
 
 
 def main():

@@ -89,21 +89,46 @@ def choose_scale():
     return mode[key_choice]
 
 
+def quiz_user(message, correct_answer):
+    user_answer = input(message)
+    is_quit = False
+    play_again = False
+    is_correct = False
+    if user_answer == 'q':
+        is_quit = True
+    if user_answer == 'r':
+        play_again = True
+    if user_answer[0] == 'p' or user_answer[0] == 'd':
+        user_answer = user_answer.upper()
+    if user_answer == correct_answer:
+        print("Correct!")
+        is_correct = True
+    else:
+        print(f"Incorrect. Try again.")
+
+    return is_quit, play_again, is_correct
+
+
+# Play the notes which will serve as the prompt for the user.
+def play_prompt(scale, triad_indices, note_choices):
+    print('Please listen to the following notes to familiarize yourself with the key:')
+    for index in triad_indices:
+        play_note(scale.notes[index], sleep_time=1.5)
+    time.sleep(1.5)
+    print(f'Now please answer the following questions based on these {len(note_choices)} notes')
+    for note in note_choices:
+        play_note(note, sleep_time=1.5)
+
+
 def scale_dictation_exercise(num_notes):
     scale = choose_scale()
     root_note = scale.notes[0]
 
     while True:
-        # pick random notes from scale.note and quiz the user
+        # pick random notes from scale.notes and quiz the user
         note_choices = []
         for i in range(num_notes):
             note_choices.append(random.choice(scale.notes))
-
-        """print(f'scale: {scale.full_name}')
-        message = ''
-        for i, note in enumerate(note_choices):
-            message += f'note{i + 1}: {note.full_name} '
-        print(message)"""
 
         # we will first play the notes of the root triad for context
         triad_indices = [0, 2, 4]  # refers to index of note in scale
@@ -111,59 +136,38 @@ def scale_dictation_exercise(num_notes):
         for i in range(num_notes):
             while True:
                 if play_again:
-                    for index in triad_indices:
-                        play_note(scale.notes[index], sleep_time=1.5)
-                    time.sleep(1.5)
-                    for note in note_choices:
-                        play_note(note, sleep_time=1.5)
+                    play_prompt(scale, triad_indices, note_choices)
 
                 # find interval from root note for each scale tone
                 # consider adding a way to convert interval notation to scale tone notation
                 pair = NotePair.from_note1_note2(root_note, note_choices[i])
-                correct_answer = pair.interval
-                user_answer = input(f"Enter guess for scale tone {i+1} (r to repeat): ")
-                if user_answer == 'q':
+                message = f'Enter guess for scale tone {i+1} (r to repeat):'
+                is_quit, play_again, is_correct = quiz_user(message, pair.interval)
+                if is_quit:
                     return False
-                if user_answer == 'r':
-                    play_again = True
+                if play_again:
                     continue
-                if user_answer[0] == 'p' or user_answer[0] == 'd':
-                    user_answer = user_answer.upper()
-                if user_answer == correct_answer:
-                    print("Correct!")
-                    play_again = False
+                if is_correct:
                     break
+                # else just repeat (temporarily print pair for debugging)
                 else:
-                    print(f"Incorrect. Try again.")
                     print_pair(pair)
             if i > 0:
                 while True:
                     if play_again:
-                        for index in triad_indices:
-                            play_note(scale.notes[index], sleep_time=1.5)
-                        time.sleep(1.5)
-                        for note in note_choices:
-                            play_note(note, sleep_time=1.5)
+                        play_prompt(scale, triad_indices, note_choices)
 
-                    # find interval from root note for each scale tone
-                    # consider adding a way to convert interval notation to scale tone notation
                     pair = NotePair.from_note1_note2(note_choices[i-1], note_choices[i])
-                    correct_answer = pair.interval
-                    user_answer = input(f"Enter guess for interval between "
-                                        f"note {i} and note {i + 1} (r to repeat): ")
-                    if user_answer == 'q':
+                    message = f'Enter guess for interval between note {i} and note {i + 1} (r to repeat): '
+                    is_quit, play_again, is_correct = quiz_user(message, pair.interval)
+                    if is_quit:
                         return False
-                    if user_answer == 'r':
-                        play_again = True
+                    if play_again:
                         continue
-                    if user_answer[0] == 'p' or user_answer[0] == 'd':
-                        user_answer = user_answer.upper()
-                    if user_answer == correct_answer:
-                        print("Correct!")
-                        play_again = False
+                    if is_correct:
                         break
+                    # else just repeat (temporarily print pair for debugging)
                     else:
-                        print(f"Incorrect. Try again.")
                         print_pair(pair)
 
 

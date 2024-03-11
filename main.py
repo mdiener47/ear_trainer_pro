@@ -1,0 +1,180 @@
+import os
+from note import Note, NotePair
+from scales import scales
+import simpleaudio as sa
+import time
+import random
+
+note_filename_map = {}
+notes = []
+directory = '/Users/mattjdiener/Desktop/C3_C5wavs'
+
+
+def fill_data_strucs():
+    for filename in os.listdir(directory):
+        if filename.startswith('Piano'):
+            li = filename.split('.')
+            note_name = li[2]
+            notes.append(Note(note_name))
+            note_filename_map[note_name] = filename
+
+
+def play_note(note, sleep_time):
+    filename = note_filename_map[note.full_name]
+    path = directory + f'/{filename}'
+    wave_obj = sa.WaveObject.from_wave_file(path)
+    play_obj = wave_obj.play()
+    time.sleep(sleep_time)
+    play_obj.stop()
+
+
+def print_pair(note_pair):
+    note1 = note_pair.note1
+    note2 = note_pair.note2
+    print(f'note1: {note1.full_name} note2: {note2.full_name} '
+          f'interval: {note_pair.interval} is_asc?: {note_pair.is_ascending}')
+
+
+def interval_identification_exercise():
+    note1 = random.choice(notes)
+    note2 = random.choice(notes)
+    note_pair = NotePair.from_note1_note2(note1, note2)
+
+    correct_answer = note_pair.interval
+
+    while True:
+        while True:
+            play_note(note1, 1.5)
+            play_note(note2, 1.5)
+
+            user_answer = input("What is the interval? (r to repeat) ")
+
+            if user_answer == 'q':
+                return False
+            if user_answer == 'p':
+                print_pair(note_pair)
+            if user_answer != 'r':
+                break
+        if user_answer[0] == 'p' or user_answer[0] == 'd':
+            user_answer = user_answer.upper()
+        if user_answer == correct_answer:
+            print("Correct!")
+            break
+        else:
+            print(f"Incorrect. The answer is {correct_answer}")
+            print_pair(note_pair)
+            yn = input("go back? y/n ")
+            if yn == 'n':
+                break
+
+    return True
+
+
+def select_nested_dict_element(d, title):
+    print(f'{title}: ')
+    for i, key in enumerate(d):
+        print(f'\t{i + 1}: {key}')
+    resp = int(input()) - 1
+    keys_li = list(d.keys())
+    key_name = keys_li[resp]
+    return key_name, d[key_name]
+
+
+def choose_scale():
+    system_name, system = select_nested_dict_element(scales, 'Scale Systems')
+
+    mode_name, mode = select_nested_dict_element(system, 'Modes')
+
+    key_choice = input(f'Select a key for {mode_name} (flats only): ')
+    return mode[key_choice]
+
+
+def scale_dictation_exercise(num_notes):
+    scale = choose_scale()
+    root_note = scale.notes[0]
+
+    while True:
+        # pick random notes from scale.note and quiz the user
+        note_choices = []
+        for i in range(num_notes):
+            note_choices.append(random.choice(scale.notes))
+
+        """print(f'scale: {scale.full_name}')
+        message = ''
+        for i, note in enumerate(note_choices):
+            message += f'note{i + 1}: {note.full_name} '
+        print(message)"""
+
+        # we will first play the notes of the root triad for context
+        triad_indices = [0, 2, 4]  # refers to index of note in scale
+        play_again = True
+        for i in range(num_notes):
+            while True:
+                if play_again:
+                    for index in triad_indices:
+                        play_note(scale.notes[index], sleep_time=1.5)
+                    time.sleep(1.5)
+                    for note in note_choices:
+                        play_note(note, sleep_time=1.5)
+
+                # find interval from root note for each scale tone
+                # consider adding a way to convert interval notation to scale tone notation
+                pair = NotePair.from_note1_note2(root_note, note_choices[i])
+                correct_answer = pair.interval
+                user_answer = input(f"Enter guess for scale tone {i+1} (r to repeat): ")
+                if user_answer == 'q':
+                    return False
+                if user_answer == 'r':
+                    play_again = True
+                    continue
+                if user_answer[0] == 'p' or user_answer[0] == 'd':
+                    user_answer = user_answer.upper()
+                if user_answer == correct_answer:
+                    print("Correct!")
+                    play_again = False
+                    break
+                else:
+                    print(f"Incorrect. Try again.")
+                    print_pair(pair)
+            if i > 0:
+                while True:
+                    if play_again:
+                        for index in triad_indices:
+                            play_note(scale.notes[index], sleep_time=1.5)
+                        time.sleep(1.5)
+                        for note in note_choices:
+                            play_note(note, sleep_time=1.5)
+
+                    # find interval from root note for each scale tone
+                    # consider adding a way to convert interval notation to scale tone notation
+                    pair = NotePair.from_note1_note2(note_choices[i-1], note_choices[i])
+                    correct_answer = pair.interval
+                    user_answer = input(f"Enter guess for interval between "
+                                        f"note {i} and note {i + 1} (r to repeat): ")
+                    if user_answer == 'q':
+                        return False
+                    if user_answer == 'r':
+                        play_again = True
+                        continue
+                    if user_answer[0] == 'p' or user_answer[0] == 'd':
+                        user_answer = user_answer.upper()
+                    if user_answer == correct_answer:
+                        print("Correct!")
+                        play_again = False
+                        break
+                    else:
+                        print(f"Incorrect. Try again.")
+                        print_pair(pair)
+
+
+def main():
+    print(scales)
+    fill_data_strucs()
+    while True:
+        if not scale_dictation_exercise(4):
+            break
+    # play_note('/Users/mattjdiener/Desktop/C3_C5wavs/Piano.mf.Gb3.wav')
+
+
+if __name__ == '__main__':
+    main()

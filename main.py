@@ -191,9 +191,19 @@ def scale_dictation_exercise(num_notes):
 def main():
     fill_data_strucs()
     while True:
-        if not scale_dictation_exercise(NUM_NOTES_SCALE_DICTATION):
+        choice = input('1: Interval identification \n2: Melodic dictation by scale \n q to quit')
+        if choice == '1':
+            while True:
+                if not interval_identification_exercise():
+                    break
+        elif choice == '2':
+            while True:
+                if not scale_dictation_exercise(NUM_NOTES_SCALE_DICTATION):
+                    break
+        elif choice == 'q':
             break
-    # play_note('/Users/mattjdiener/Desktop/C3_C5wavs/Piano.mf.Gb3.wav')
+        else:
+            print('invalid choice')
 
 
 if __name__ == '__main__':

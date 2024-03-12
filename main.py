@@ -4,12 +4,13 @@ from scales import scales
 import simpleaudio as sa
 import time
 import random
+import pygame
 
 NUM_NOTES_SCALE_DICTATION = 4
 
 note_filename_map = {}
 notes = []
-directory = '/Users/mattjdiener/PycharmProjects/ear_trainer_pro/'
+directory = '/Users/mattjdiener/PycharmProjects/ear_trainer_pro/piano_notes'
 
 interval_to_scale_tone = {
     'P1': '1',
@@ -36,12 +37,19 @@ def fill_data_strucs():
             note_filename_map[note_name] = filename
 
 
+# def play_note(note, sleep_time):
+#     filename = note_filename_map[note.full_name]
+#     wave_obj = sa.WaveObject.from_wave_file(filename)
+#     play_obj = wave_obj.play()
+#     time.sleep(sleep_time)
+#     play_obj.stop()
+
 def play_note(note, sleep_time):
     filename = note_filename_map[note.full_name]
-    wave_obj = sa.WaveObject.from_wave_file(filename)
-    play_obj = wave_obj.play()
+    note = pygame.mixer.Sound(filename)
+    note.play()
     time.sleep(sleep_time)
-    play_obj.stop()
+    note.stop()
 
 
 def print_pair(note_pair):
@@ -189,6 +197,8 @@ def scale_dictation_exercise(num_notes):
 
 
 def main():
+    pygame.init()
+    pygame.mixer.init()
     fill_data_strucs()
     while True:
         choice = input('1: Interval identification \n2: Melodic dictation by scale \nq: Quit\n')

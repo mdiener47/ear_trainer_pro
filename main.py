@@ -189,7 +189,6 @@ def scale_dictation_exercise(num_notes):
 
 
 def main():
-    print(scales)
     fill_data_strucs()
     while True:
         if not scale_dictation_exercise(NUM_NOTES_SCALE_DICTATION):

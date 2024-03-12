@@ -1,16 +1,17 @@
 import os
 from note import Note, NotePair
-from scales import scales
-import simpleaudio as sa
+import scales as sc
+import scale as s
 import time
 import random
 import pygame
 
 NUM_NOTES_SCALE_DICTATION = 4
 
+scales = {}
 note_filename_map = {}
 notes = []
-directory = '/Users/mattjdiener/PycharmProjects/ear_trainer_pro/piano_notes'
+directory = 'piano_notes'
 
 interval_to_scale_tone = {
     'P1': '1',
@@ -36,16 +37,15 @@ def fill_data_strucs():
             notes.append(Note(note_name))
             note_filename_map[note_name] = filename
 
-
-# def play_note(note, sleep_time):
-#     filename = note_filename_map[note.full_name]
-#     wave_obj = sa.WaveObject.from_wave_file(filename)
-#     play_obj = wave_obj.play()
-#     time.sleep(sleep_time)
-#     play_obj.stop()
+    s.set_all_notes(notes)
+    global scales
+    scales = sc.init_scales()
+    # scale = scales['Melodic Minor']['Melodic Minor']['C']
+    # for note in scale.notes:
+    #     print(note.full_name)
 
 def play_note(note, sleep_time):
-    filename = note_filename_map[note.full_name]
+    filename = f'{directory}/{note_filename_map[note.full_name]}'
     note = pygame.mixer.Sound(filename)
     note.play()
     time.sleep(sleep_time)
@@ -134,10 +134,10 @@ def quiz_user(message, correct_answer):
 
 
 # Play the notes which will serve as the prompt for the user.
-def play_prompt(scale, triad_indices, note_choices):
+def play_prompt(scale, note_choices):
     print('Please listen to the following notes to familiarize yourself with the key:')
-    for index in triad_indices:
-        play_note(scale.notes[index], sleep_time=1.5)
+    for note in scale.triad:
+        play_note(note, sleep_time=1.5)
     time.sleep(1.5)
     print(f'Now please answer the following questions based on these {len(note_choices)} notes')
     for note in note_choices:
@@ -154,14 +154,12 @@ def scale_dictation_exercise(num_notes):
         for i in range(num_notes):
             note_choices.append(random.choice(scale.notes))
 
-        # we will first play the notes of the root triad for context
-        triad_indices = [0, 2, 4]  # refers to index of note in scale
         play_again = True
         for i in range(num_notes):
             if i > 0:
                 while True:
                     if play_again:
-                        play_prompt(scale, triad_indices, note_choices)
+                        play_prompt(scale, note_choices)
 
                     pair = NotePair.from_note1_note2(note_choices[i-1], note_choices[i])
                     message = f'Enter guess for interval between note {i} and note {i + 1} (r to repeat): '
@@ -177,13 +175,22 @@ def scale_dictation_exercise(num_notes):
                         print_pair(pair)
             while True:
                 if play_again:
-                    play_prompt(scale, triad_indices, note_choices)
+                    play_prompt(scale, note_choices)
 
                 # find interval from root note for each scale tone
-                # consider adding a way to convert interval notation to scale tone notation
                 pair = NotePair.from_note1_note2(root_note, note_choices[i])
-                correct_answer = interval_to_scale_tone[pair.interval]
-                message = f'Enter guess for scale tone {i+1} (r to repeat):'
+
+                if not pair.is_ascending:
+                    selected_note = Note(pair.note2.full_name)
+                    # increment selected note's octave until it is greater than root so that we will have the right
+                    # scale tone conversion.
+                    while root_note > selected_note:
+                        selected_note.octave = str(int(selected_note.octave) + 1)
+                    new_pair = NotePair.from_note1_note2(root_note, selected_note)
+                    correct_answer = interval_to_scale_tone[new_pair.interval]
+                else:
+                    correct_answer = interval_to_scale_tone[pair.interval]
+                message = f'Enter guess for scale tone {i+1} (r to repeat): '
                 is_quit, play_again, is_correct = quiz_user(message, correct_answer)
                 if is_quit:
                     return False
@@ -201,7 +208,7 @@ def main():
     pygame.mixer.init()
     fill_data_strucs()
     while True:
-        choice = input('1: Interval identification \n2: Melodic dictation by scale \nq: Quit\n')
+        choice = input('\n1: Interval identification \n2: Melodic dictation by scale \nq: Quit\n')
         if choice == '1':
             while True:
                 if not interval_identification_exercise():

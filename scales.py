@@ -26,24 +26,27 @@ def add_modes(obj, parent_intervals, modes_li):
         index += 1
 
 
-for key in intervals:
-    obj = intervals[key]
-    parent_name = list(obj.keys())[0]
-    add_modes(obj, obj[parent_name], mode_names[parent_name])
+def init_scales():
+    for key in intervals:
+        obj = intervals[key]
+        parent_name = list(obj.keys())[0]
+        add_modes(obj, obj[parent_name], mode_names[parent_name])
 
-scales = {}
+    scales = {}
 
-# convert lists of intervals to scale objects and populate scales dictionary
-for scale_category_name in intervals:
-    scale_category_intervals_obj = intervals[scale_category_name]
-    scale_category_obj = {}
-    for scale_name in scale_category_intervals_obj:
-        interval_li = scale_category_intervals_obj[scale_name]
-        scale_mode_obj = {}
-        for name in Note.notes:
-            root = Note(name + '3')  # use notes from octave 3 as roots
-            scale = Scale(root, scale_name, interval_li)
-            scale_mode_obj[name] = scale  # index third-layer by note name
+    # convert lists of intervals to scale objects and populate scales dictionary
+    for scale_category_name in intervals:
+        scale_category_intervals_obj = intervals[scale_category_name]
+        scale_category_obj = {}
+        for scale_name in scale_category_intervals_obj:
+            interval_li = scale_category_intervals_obj[scale_name]
+            scale_mode_obj = {}
+            for name in Note.notes:
+                root = Note(name + '3')  # use notes from octave 3 as roots
+                scale = Scale(root, scale_name, interval_li)
+                scale_mode_obj[name] = scale  # index third-layer by note name
 
-        scale_category_obj[scale_name] = scale_mode_obj
-    scales[scale_category_name] = scale_category_obj
+            scale_category_obj[scale_name] = scale_mode_obj
+        scales[scale_category_name] = scale_category_obj
+
+    return scales

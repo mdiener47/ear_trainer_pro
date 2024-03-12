@@ -16,6 +16,7 @@ interval_to_scale_tone = {
     'm2': 'b2',
     'M2': '2',
     'm3': 'b3',
+    'M3': '3',
     'P4': '4',
     'D5': 'b5',
     'P5': '5',
@@ -37,8 +38,7 @@ def fill_data_strucs():
 
 def play_note(note, sleep_time):
     filename = note_filename_map[note.full_name]
-    path = directory + f'{filename}'
-    wave_obj = sa.WaveObject.from_wave_file(path)
+    wave_obj = sa.WaveObject.from_wave_file(filename)
     play_obj = wave_obj.play()
     time.sleep(sleep_time)
     play_obj.stop()
@@ -120,7 +120,7 @@ def quiz_user(message, correct_answer):
         print("Correct!")
         is_correct = True
     else:
-        print(f"Incorrect. Try again.")
+        print(f"Incorrect. Try again. {correct_answer}")
 
     return is_quit, play_again, is_correct
 
@@ -176,7 +176,7 @@ def scale_dictation_exercise(num_notes):
                 pair = NotePair.from_note1_note2(root_note, note_choices[i])
                 correct_answer = interval_to_scale_tone[pair.interval]
                 message = f'Enter guess for scale tone {i+1} (r to repeat):'
-                is_quit, play_again, is_correct = quiz_user(message, interval_to_scale_tone)
+                is_quit, play_again, is_correct = quiz_user(message, correct_answer)
                 if is_quit:
                     return False
                 if play_again:
@@ -191,7 +191,7 @@ def scale_dictation_exercise(num_notes):
 def main():
     fill_data_strucs()
     while True:
-        choice = input('1: Interval identification \n2: Melodic dictation by scale \n q to quit')
+        choice = input('1: Interval identification \n2: Melodic dictation by scale \nq: Quit\n')
         if choice == '1':
             while True:
                 if not interval_identification_exercise():

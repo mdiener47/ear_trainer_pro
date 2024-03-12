@@ -44,6 +44,7 @@ def fill_data_strucs():
     # for note in scale.notes:
     #     print(note.full_name)
 
+
 def play_note(note, sleep_time):
     filename = f'{directory}/{note_filename_map[note.full_name]}'
     note = pygame.mixer.Sound(filename)
@@ -86,7 +87,6 @@ def interval_identification_exercise():
             break
         else:
             print(f"Incorrect. The answer is {correct_answer}")
-            print_pair(note_pair)
             yn = input("go back? y/n ")
             if yn == 'n':
                 break
@@ -95,22 +95,29 @@ def interval_identification_exercise():
 
 
 def select_nested_dict_element(d, title):
-    print(f'{title}: ')
-    for i, key in enumerate(d):
-        print(f'\t{i + 1}: {key}')
-    resp = int(input()) - 1
-    keys_li = list(d.keys())
-    key_name = keys_li[resp]
-    return key_name, d[key_name]
+    while True:
+        try:
+            print(f'{title}: ')
+            for i, key in enumerate(d):
+                print(f'\t{i + 1}: {key}')
+            resp = int(input()) - 1
+            keys_li = list(d.keys())
+            key_name = keys_li[resp]
+            return key_name, d[key_name]
+        except (IndexError, ValueError):
+            print(f'Invalid {title[:len(title) - 1].lower()} choice, please try again.')
 
 
 def choose_scale():
     system_name, system = select_nested_dict_element(scales, 'Scale Systems')
-
     mode_name, mode = select_nested_dict_element(system, 'Modes')
 
-    key_choice = input(f'Select a key for {mode_name} (flats only): ')
-    return mode[key_choice]
+    while True:
+        try:
+            key_choice = input(f'Select a key for {mode_name} (flats only): ')
+            return mode[key_choice]
+        except KeyError:
+            print('Invalid key choice, please try again.')
 
 
 def quiz_user(message, correct_answer):
@@ -128,7 +135,7 @@ def quiz_user(message, correct_answer):
         print("Correct!")
         is_correct = True
     else:
-        print(f"Incorrect. Try again. {correct_answer}")
+        print(f"Incorrect. Try again. Answer: {correct_answer}")
 
     return is_quit, play_again, is_correct
 
@@ -170,9 +177,8 @@ def scale_dictation_exercise(num_notes):
                         continue
                     if is_correct:
                         break
-                    # else just repeat (temporarily print pair for debugging)
-                    else:
-                        print_pair(pair)
+                    # else just repeat
+
             while True:
                 if play_again:
                     play_prompt(scale, note_choices)
@@ -198,9 +204,7 @@ def scale_dictation_exercise(num_notes):
                     continue
                 if is_correct:
                     break
-                # else just repeat (temporarily print pair for debugging)
-                else:
-                    print_pair(pair)
+                # else just repeat
 
 
 def main():
